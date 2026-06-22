@@ -1,0 +1,18 @@
+services:
+  pz:
+    image: jthomastek/project-zomboid-server:latest
+    container_name: pz-testing
+    restart: unless-stopped
+    stop_grace_period: 1m
+    env_file:
+      - .env
+      - .env.secrets
+    ports:
+      - "${HOST_GAME_PORT}:8766/udp"
+      - "${HOST_PLAYER_PORT_RANGE}:16261-16262/udp"
+    volumes:
+      - pz_testing_data:/home/ubuntu
+
+volumes:
+  pz_testing_data:
+    name: pz_testing_data
