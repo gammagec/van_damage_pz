@@ -1,9 +1,23 @@
 services:
+  config-sync:
+    image: alpine:3
+    container_name: pz-prod-config-sync
+    volumes:
+      - ./config:/src:ro
+      - pz_prod_data:/dest
+    entrypoint:
+      - sh
+      - -c
+      - "mkdir -p /dest/Zomboid/Server && cp -a /src/. /dest/Zomboid/Server/"
+
   pz:
     image: jthomastek/project-zomboid-server:1.0.0
     container_name: pz-prod
     restart: unless-stopped
     stop_grace_period: 1m
+    depends_on:
+      config-sync:
+        condition: service_completed_successfully
     env_file:
       - .env
       - .env.secrets

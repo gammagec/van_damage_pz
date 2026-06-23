@@ -7,8 +7,8 @@ image. `testing` tracks `:latest`; `prod` is pinned to `:1.0.0` for stability.
 
 ## Layout
 
-- `testing/` — testing config (`docker-compose.yml`, `.env`)
-- `prod/` — prod config (`docker-compose.yml`, `.env`)
+- `testing/` — testing config (`docker-compose.yml`, `.env`, `config/`)
+- `prod/` — prod config (`docker-compose.yml`, `.env`, `config/`)
 - `scripts/deploy.sh` — deploys to a remote host over SSH
 
 Each environment has its own named Docker volume (`pz_testing_data` /
@@ -39,18 +39,31 @@ docker compose logs -f
 ```
 
 Stop with `docker compose down` (data persists in the named volume; add
-`-v` to wipe it).
+`-v` to wipe it). To pick up new config after editing `config/` or `.env`,
+use `docker compose up -d --force-recreate` (see "Server config & mods"
+below for why `--force-recreate` matters).
 
 ## Editing config
 
-Non-secret settings (server name, memory, ports) live in `testing/.env` /
-`prod/.env` and are checked into git. Edit, commit, push like normal code:
+**Non-secret settings** (server name, memory, ports) live in `testing/.env`
+/ `prod/.env` and are checked into git. Edit, commit, push like normal code:
 
 ```bash
 git add testing/.env
 git commit -m "Bump testing server memory to 6g"
 git push
 ```
+
+**Server settings and mods** (sandbox options, `Mods=`/`WorkshopItems=`)
+live in `testing/config/` / `prod/config/` — see the `README.md` in each
+for the one-time bootstrap and day-to-day editing workflow. The short
+version: those files are the single source of truth. A `config-sync`
+helper service stamps them into the running server's volume on every
+`docker compose up -d --force-recreate`, which overwrites any settings
+changed live through the in-game admin menu — so config drift never
+survives a deploy. Always use `--force-recreate` (the deploy script
+already does) rather than a plain `up -d`, otherwise `config-sync` won't
+rerun and stale volume state will stick around.
 
 ## Deploying to a remote host
 

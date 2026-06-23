@@ -18,5 +18,7 @@ ssh "$SSH_HOST" "
   git pull --ff-only
   cd '$ENVIRONMENT'
   docker compose pull
-  docker compose up -d
+  docker compose up -d --force-recreate
 "
+# --force-recreate reruns config-sync so committed config/ overwrites the
+# volume's copy on every deploy, undoing any drift from in-game admin edits.
