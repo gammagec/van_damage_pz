@@ -13,12 +13,10 @@ source of truth.
    default config inside the volume.
 2. Wait for the server to fully boot at least once (check `docker compose
    logs -f pz` until it reports ready).
-3. Pull the generated files out of the volume into this directory:
-   ```bash
-   docker compose cp pz:/home/ubuntu/Zomboid/Server/ProdServer.ini ./ProdServer.ini
-   docker compose cp pz:/home/ubuntu/Zomboid/Server/ProdServer_SandboxVars.lua ./ProdServer_SandboxVars.lua
-   ```
-4. `git add ProdServer.ini ProdServer_SandboxVars.lua` and commit.
+3. From the repo root: `scripts/pull-config.sh prod` — pulls every
+   generated `ProdServer*` file (ini, sandbox vars, spawn points/regions)
+   out of the container into this directory.
+4. `git add prod/config` and commit.
 
 ## Day-to-day changes
 
@@ -28,6 +26,8 @@ source of truth.
 - Commit, then redeploy (`scripts/deploy.sh prod ...` or `docker compose up
   -d --force-recreate` locally). Mods and most sandbox settings require a
   server restart to take effect anyway, so this matches normal workflow.
+- If the server itself generates new files here, rerun
+  `scripts/pull-config.sh prod` to recapture them before committing.
 
 Consider copying a known-good config from `testing/config/` here (renaming
 the files to match `PZ_SERVER_NAME=ProdServer`) once it's been validated,

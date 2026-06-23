@@ -10,6 +10,7 @@ image. `testing` tracks `:latest`; `prod` is pinned to `:1.0.0` for stability.
 - `testing/` — testing config (`docker-compose.yml`, `.env`, `config/`)
 - `prod/` — prod config (`docker-compose.yml`, `.env`, `config/`)
 - `scripts/deploy.sh` — deploys to a remote host over SSH
+- `scripts/pull-config.sh` — pulls generated server config out of a running container into `config/`
 
 Each environment has its own named Docker volume (`pz_testing_data` /
 `pz_prod_data`), so testing and prod never share save data, even if run on
