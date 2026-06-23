@@ -251,12 +251,13 @@ def main() -> None:
     existing = yaml.safe_load(mods_file.read_text()) or {}
     existing_workshop_ids = {str(e.get("workshop_id")) for e in existing.get("mods") or []}
 
-    workshop_id = args.workshop_id or ""
-    while not workshop_id:
-        workshop_id = prompt("Steam Workshop ID").strip()
+    workshop_id = (args.workshop_id or "").strip()
+    while True:
         if not workshop_id:
-            print("Workshop ID is required.", file=sys.stderr)
-            continue
+            workshop_id = prompt("Steam Workshop ID").strip()
+            if not workshop_id:
+                print("Workshop ID is required.", file=sys.stderr)
+                continue
         if not workshop_id.isdigit():
             if not prompt_yes_no(f"'{workshop_id}' doesn't look numeric, use it anyway?", False):
                 workshop_id = ""
@@ -264,6 +265,8 @@ def main() -> None:
         if workshop_id in existing_workshop_ids:
             if not prompt_yes_no(f"workshop_id {workshop_id} is already in mods.yaml, add another entry for it anyway?", False):
                 workshop_id = ""
+                continue
+        break
 
     if args.no_lookup:
         name, mod_id, sub_mods = manual_entry()
