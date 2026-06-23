@@ -69,14 +69,24 @@ def find_mods_in_volume(volume: str, workshop_id: str) -> list[tuple[str, str]]:
     result = subprocess.run(
         ["docker", "run", "--rm", "-v", f"{volume}:/dest:ro", "alpine", "sh", "-c", script],
         capture_output=True,
-        text=True,
+        encoding="utf-8",
+        errors="replace",
     )
-    blocks = result.stdout.split("===MODINFO===")[1:]
-    mods = []
+    blocks = (result.stdout or "").split("===MODINFO===")[1:]
+    mods: list[tuple[str, str]] = []
+    seen_ids: set[str] = set()
     for block in blocks:
         info = parse_mod_info(block)
-        if info.get("id"):
-            mods.append((info["id"], info.get("name", info["id"])))
+        mod_id = info.get("id")
+        if not mod_id:
+            continue
+        if mod_id in seen_ids:
+            # Some mods ship sibling folders that declare the same id as
+            # version-specific alternatives rather than nesting them under
+            # a version subfolder -- only list each id once.
+            continue
+        seen_ids.add(mod_id)
+        mods.append((mod_id, info.get("name", mod_id)))
     return mods
 
 
