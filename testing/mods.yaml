@@ -1,0 +1,29 @@
+# Mod list for the testing server. Run `scripts/sync-mods.py testing` after
+# editing this file to write the resulting Mods=/WorkshopItems= lines into
+# config/TestingServer.ini.
+#
+# Each entry is one Steam Workshop item. Most workshop items contain a
+# single mod:
+#
+#   - workshop_id: "2667521636"
+#     name: "Example Single Mod"        # optional, for readability only
+#     mod_id: examplemod
+#
+# Some workshop items bundle several sub-mods under one Workshop ID. List
+# them under sub_mods to enable/disable individual sub-mods while keeping
+# the rest (and the workshop subscription itself):
+#
+#   - workshop_id: "2169435993"
+#     name: "Example Bundle"
+#     sub_mods:
+#       - id: ExampleCore
+#       - id: ExampleExtra
+#         enabled: false               # subscribed, but this sub-mod is off
+#
+# `enabled: false` at the top level of an entry disables the whole workshop
+# item (no download, no mods from it) without deleting it from this file.
+#
+# An entry with neither `mod_id` nor `sub_mods` just adds its workshop_id to
+# WorkshopItems (e.g. a map or asset pack with no mod to activate).
+
+mods: []

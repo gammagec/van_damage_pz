@@ -20,8 +20,9 @@ source of truth.
 
 ## Day-to-day changes
 
-- **Mods**: edit the `Mods=` (mod IDs) and `WorkshopItems=` (Steam Workshop
-  IDs) lines in `ProdServer.ini`.
+- **Mods**: don't hand-edit `Mods=`/`WorkshopItems=` in `ProdServer.ini`
+  directly — edit `../mods.yaml` and run `scripts/sync-mods.py prod` (from
+  the repo root) to regenerate those two lines.
 - **Sandbox/world settings**: edit `ProdServer_SandboxVars.lua`.
 - Commit, then redeploy (`scripts/deploy.sh prod ...` or `docker compose up
   -d --force-recreate` locally). Mods and most sandbox settings require a

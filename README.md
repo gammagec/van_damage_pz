@@ -11,6 +11,7 @@ image. `testing` tracks `:latest`; `prod` is pinned to `:1.0.0` for stability.
 - `prod/` — prod config (`docker-compose.yml`, `.env`, `config/`)
 - `scripts/deploy.sh` — deploys to a remote host over SSH
 - `scripts/pull-config.sh` — pulls generated server config out of a running container into `config/`
+- `scripts/sync-mods.py` — writes `Mods=`/`WorkshopItems=` into `config/<name>.ini` from `mods.yaml`
 
 Each environment has its own named Docker volume (`pz_testing_data` /
 `pz_prod_data`), so testing and prod never share save data, even if run on
@@ -65,6 +66,21 @@ changed live through the in-game admin menu — so config drift never
 survives a deploy. Always use `--force-recreate` (the deploy script
 already does) rather than a plain `up -d`, otherwise `config-sync` won't
 rerun and stale volume state will stick around.
+
+**Mods** are managed in `testing/mods.yaml` / `prod/mods.yaml` rather than
+hand-editing the ini's `Mods=`/`WorkshopItems=` lines directly. Each entry
+is one Steam Workshop item; items that bundle several sub-mods can disable
+individual sub-mods while keeping the rest (see the comments at the top of
+`testing/mods.yaml` for the full schema). After editing:
+
+```bash
+python3 scripts/sync-mods.py testing   # add --dry-run to preview first
+git add testing/mods.yaml testing/config
+git commit -m "Enable ExampleMod"
+```
+
+Requires `python3` with `pyyaml` installed locally — it only edits the
+checked-in ini, it doesn't need to run on the server itself.
 
 ## Deploying to a remote host
 

@@ -20,8 +20,9 @@ source of truth.
 
 ## Day-to-day changes
 
-- **Mods**: edit the `Mods=` (mod IDs) and `WorkshopItems=` (Steam Workshop
-  IDs) lines in `TestingServer.ini`.
+- **Mods**: don't hand-edit `Mods=`/`WorkshopItems=` in `TestingServer.ini`
+  directly — edit `../mods.yaml` and run `scripts/sync-mods.py testing`
+  (from the repo root) to regenerate those two lines.
 - **Sandbox/world settings**: edit `TestingServer_SandboxVars.lua`.
 - Commit, then redeploy (`scripts/deploy.sh testing ...` or `docker compose
   up -d --force-recreate` locally). Mods and most sandbox settings require

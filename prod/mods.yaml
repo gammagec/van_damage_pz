@@ -1,0 +1,8 @@
+# Mod list for the prod server. Run `scripts/sync-mods.py prod` after
+# editing this file to write the resulting Mods=/WorkshopItems= lines into
+# config/ProdServer.ini.
+#
+# See testing/mods.yaml for the full schema documentation. Typically you'd
+# copy a validated testing/mods.yaml here once it's been proven out.
+
+mods: []
