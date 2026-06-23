@@ -1,25 +1,22 @@
 #!/usr/bin/env python3
-"""Append a mod entry to an environment's mods.yaml, looked up from Steam.
+"""Append a mod entry to an environment's mods.yaml, by Workshop ID.
 
-Usage: scripts/add-mod.py <testing|prod> [workshop_id] [--no-lookup]
+Usage: scripts/add-mod.py <testing|prod> [workshop_id]
 
-Asks for the Steam Workshop ID (or takes it as an argument), fetches the
-item's title from the Steam Web API, then downloads it anonymously via
-SteamCMD (cached under .cache/steamcmd-scratch/ for faster repeat lookups)
-to read its mod.info file(s) -- this is the only reliable source for the
-actual Mods= id(s); the public API doesn't expose them. Workshop items
-that bundle several mods get one mod.info per sub-mod, each individually
-enable/disable-able. Run scripts/sync-mods.py afterward to apply the
-change to the server ini.
+Only looks up the title from the Steam Web API (fast, no Docker/SteamCMD
+needed) and appends a workshop_id-only entry -- it does NOT resolve
+mod_id/sub_mods. The public API doesn't expose those; only the item's own
+mod.info does, and reading that means downloading the item somewhere.
 
-Pass --no-lookup to skip Steam/Docker entirely and enter everything by
-hand (useful with no internet/Docker access).
+Instead: deploy as-is (this entry just adds its workshop_id to
+WorkshopItems=, contributing nothing to Mods= yet), let the server
+download it normally, then run scripts/sync-submods.py to resolve
+mod_id/sub_mods from what the server already downloaded -- fast, since it
+reads the existing download instead of fetching it again.
 """
 import argparse
 import json
 import re
-import shutil
-import subprocess
 import sys
 import urllib.error
 import urllib.parse
@@ -29,9 +26,6 @@ from pathlib import Path
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-CACHE_DIR = REPO_ROOT / ".cache" / "steamcmd-scratch"
-PZ_APP_ID = "108600"  # Project Zomboid (base game) -- Workshop content lives
-# under this appid, NOT 380870 (the dedicated server appid used elsewhere).
 
 
 def prompt(text: str, default: str | None = None) -> str:
@@ -52,26 +46,10 @@ def quote(value: str) -> str:
     return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
-def yamlize(value: str) -> str:
-    if value == "" or re.search(r"^\s|\s$|[:#]", value):
-        return quote(value)
-    return value
-
-
-def build_entry_text(workshop_id: str, name: str, mod_id: str, sub_mods: list[tuple[str, str, bool]]) -> str:
+def build_entry_text(workshop_id: str, name: str) -> str:
     lines = [f"  - workshop_id: {quote(workshop_id)}"]
     if name:
         lines.append(f"    name: {quote(name)}")
-    if sub_mods:
-        lines.append("    sub_mods:")
-        for sub_id, sub_name, enabled in sub_mods:
-            lines.append(f"      - id: {yamlize(sub_id)}")
-            if sub_name:
-                lines.append(f"        name: {quote(sub_name)}")
-            if not enabled:
-                lines.append("        enabled: false")
-    elif mod_id:
-        lines.append(f"    mod_id: {yamlize(mod_id)}")
     return "\n".join(lines) + "\n"
 
 
@@ -94,154 +72,18 @@ def fetch_title(workshop_id: str) -> str | None:
         data=data,
         method="POST",
     )
-    try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            payload = json.load(resp)
-    except (urllib.error.URLError, TimeoutError) as exc:
-        print(f"warning: Steam API lookup failed: {exc}", file=sys.stderr)
-        return None
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        payload = json.load(resp)
     details = payload.get("response", {}).get("publishedfiledetails", [])
     if not details or details[0].get("result") != 1:
         return None
     return details[0].get("title")
 
 
-def download_workshop_item(workshop_id: str) -> Path | None:
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    cmd = [
-        "docker", "run", "--rm",
-        "-v", f"{CACHE_DIR}:/home/ubuntu",
-        "--entrypoint", "steamcmd",
-        "jthomastek/project-zomboid-server:latest",
-        "+login", "anonymous",
-        "+workshop_download_item", PZ_APP_ID, workshop_id,
-        "+quit",
-    ]
-    output = ""
-    for attempt in range(1, 4):
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        output = result.stdout + result.stderr
-        if f"Downloaded item {workshop_id}" in output:
-            return CACHE_DIR / ".local/share/Steam/steamapps/workshop/content" / PZ_APP_ID / workshop_id
-        print(f"steamcmd download attempt {attempt}/3 failed, retrying...", file=sys.stderr)
-    print(f"warning: steamcmd workshop download failed after 3 attempts:\n{output}", file=sys.stderr)
-    return None
-
-
-def cleanup_workshop_item(workshop_id: str) -> None:
-    subprocess.run(
-        [
-            "docker", "run", "--rm",
-            "-v", f"{CACHE_DIR}:/home/ubuntu",
-            "alpine", "sh", "-c",
-            f"rm -rf '/home/ubuntu/.local/share/Steam/steamapps/workshop/content/{PZ_APP_ID}/{workshop_id}'",
-        ],
-        capture_output=True,
-    )
-
-
-def parse_mod_info(path: Path) -> dict[str, str]:
-    info: dict[str, str] = {}
-    for line in path.read_text(errors="replace").splitlines():
-        if "=" in line:
-            key, _, value = line.partition("=")
-            info[key.strip().lower()] = value.strip()
-    return info
-
-
-def find_mods(content_dir: Path) -> list[tuple[str, str]]:
-    """Return [(mod_id, mod_name), ...], one per sub-mod bundled in this item.
-
-    The canonical declaration for each sub-mod is mods/<Folder>/mod.info --
-    one level under "mods/". Version-specific override folders nested
-    deeper (e.g. mods/<Folder>/42.17/mod.info) repeat the same id and are
-    skipped. Falls back to a root-level mod.info for legacy items with no
-    "mods/" wrapper.
-    """
-    mods_dir = content_dir / "mods"
-    candidates: list[Path] = []
-    if mods_dir.is_dir():
-        candidates = [d for d in mods_dir.iterdir() if d.is_dir() and (d / "mod.info").exists()]
-    if not candidates:
-        if (content_dir / "mod.info").exists():
-            candidates = [content_dir]
-        elif content_dir.is_dir():
-            candidates = [d for d in content_dir.iterdir() if d.is_dir() and (d / "mod.info").exists()]
-
-    results = []
-    for d in candidates:
-        info = parse_mod_info(d / "mod.info")
-        if info.get("id"):
-            results.append((info["id"], info.get("name", d.name)))
-    return results
-
-
-def manual_entry() -> tuple[str, str, list[tuple[str, str, bool]]]:
-    name = prompt("Mod name (optional, for your own reference)")
-    mod_id = ""
-    sub_mods: list[tuple[str, str, bool]] = []
-    if prompt_yes_no("Does this workshop item bundle multiple sub-mods?", False):
-        print("Enter each sub-mod ID, blank to finish.")
-        while True:
-            sub_id = prompt("  Sub-mod ID")
-            if not sub_id:
-                break
-            enabled = prompt_yes_no(f"  Enable '{sub_id}'?", True)
-            sub_mods.append((sub_id, "", enabled))
-        if not sub_mods:
-            print("No sub-mods entered; treating as a workshop-id-only entry.")
-    else:
-        mod_id = prompt("Mod ID (the 'Mods=' id from mod.info; leave blank for a map/asset-only item)")
-    return name, mod_id, sub_mods
-
-
-def looked_up_entry(workshop_id: str) -> tuple[str, str, list[tuple[str, str, bool]]]:
-    print(f"Looking up workshop item {workshop_id} on Steam...")
-    title = fetch_title(workshop_id)
-    if title is None:
-        sys.exit(f"Workshop item {workshop_id} not found (deleted, private, or invalid ID)")
-    print(f"Title: {title}")
-
-    if shutil.which("docker") is None:
-        print("warning: docker not found, can't read mod.info -- falling back to manual entry.", file=sys.stderr)
-        name, mod_id, sub_mods = manual_entry()
-        return title or name, mod_id, sub_mods
-
-    print("Downloading via SteamCMD to read mod.info (cached after the first run)...")
-    content_dir = download_workshop_item(workshop_id)
-    mods_found: list[tuple[str, str]] = []
-    if content_dir is not None:
-        try:
-            mods_found = find_mods(content_dir)
-        finally:
-            cleanup_workshop_item(workshop_id)
-    else:
-        print("warning: download failed -- falling back to manual entry.", file=sys.stderr)
-        name, mod_id, sub_mods = manual_entry()
-        return title or name, mod_id, sub_mods
-
-    if not mods_found:
-        print("No mod.info found -- treating as a workshop-id-only entry (e.g. a map/asset pack).")
-        return title, "", []
-
-    if len(mods_found) == 1:
-        mod_id, mod_name = mods_found[0]
-        print(f"Detected mod id: {mod_id} (name: {mod_name})")
-        return title, mod_id, []
-
-    print(f"Detected {len(mods_found)} sub-mods bundled in this item:")
-    sub_mods = []
-    for sub_id, sub_name in mods_found:
-        enabled = prompt_yes_no(f"  Enable '{sub_name}' (id: {sub_id})?", True)
-        sub_mods.append((sub_id, sub_name, enabled))
-    return title, "", sub_mods
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("environment", choices=["testing", "prod"])
     parser.add_argument("workshop_id", nargs="?")
-    parser.add_argument("--no-lookup", action="store_true", help="skip Steam/Docker lookup, enter everything manually")
     args = parser.parse_args()
 
     mods_file = REPO_ROOT / args.environment / "mods.yaml"
@@ -268,12 +110,18 @@ def main() -> None:
                 continue
         break
 
-    if args.no_lookup:
-        name, mod_id, sub_mods = manual_entry()
+    print(f"Looking up workshop item {workshop_id} on Steam...")
+    try:
+        title = fetch_title(workshop_id)
+    except (urllib.error.URLError, TimeoutError) as exc:
+        print(f"warning: Steam API lookup failed ({exc})", file=sys.stderr)
+        title = prompt("Mod name (lookup failed, enter manually; optional)")
     else:
-        name, mod_id, sub_mods = looked_up_entry(workshop_id)
+        if title is None:
+            sys.exit(f"Workshop item {workshop_id} not found (deleted, private, or invalid ID)")
+        print(f"Title: {title}")
 
-    entry_text = build_entry_text(workshop_id, name, mod_id, sub_mods)
+    entry_text = build_entry_text(workshop_id, title)
     print("\nAdding:")
     print(entry_text)
 
@@ -283,7 +131,9 @@ def main() -> None:
 
     insert_entry(mods_file, entry_text)
     print(f"Added to {mods_file}")
-    print(f"\nNext: scripts/sync-mods.py {args.environment}")
+    print(f"\nNext: scripts/sync-mods.py {args.environment}, then deploy.")
+    print(f"Once the server has downloaded it, run scripts/sync-submods.py {args.environment}")
+    print("to resolve mod_id/sub_mods, then scripts/sync-mods.py again to apply them.")
 
 
 if __name__ == "__main__":

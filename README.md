@@ -13,7 +13,8 @@ image. `testing` tracks `:latest`; `prod` is pinned to `:1.0.0` for stability.
 - `scripts/pull-config.sh` — pulls generated server config out of a running container into `config/`
 - `scripts/sync-mods.py` — writes `Mods=`/`WorkshopItems=` into `config/<name>.ini` from `mods.yaml`
 - `scripts/pz-bootstrap.sh` — replaces the image's default startup script to support `PZ_BETA_BRANCH`
-- `scripts/add-mod.py` — looks up a Workshop ID on Steam and appends the resulting mod entry to `mods.yaml`
+- `scripts/add-mod.py` — looks up a Workshop ID's title on Steam and appends an entry to `mods.yaml`
+- `scripts/sync-submods.py` — resolves `mod_id`/`sub_mods` in `mods.yaml` from already-downloaded Workshop content
 - `scripts/wipe-world.sh` — deletes the saved world/player database for a fresh map, keeping config and the installed game server
 
 Each environment has its own named Docker volume (`pz_testing_data` /
@@ -76,25 +77,38 @@ is one Steam Workshop item; items that bundle several sub-mods can disable
 individual sub-mods while keeping the rest (see the comments at the top of
 `testing/mods.yaml` for the full schema).
 
-Add an entry with `scripts/add-mod.py testing <workshop_id>` (or omit the
-ID and it'll ask) instead of hand-editing the YAML. It fetches the title
-from Steam, then downloads the item anonymously via SteamCMD to read its
-real `mod.info` — the public Steam API doesn't expose mod IDs, only
-`mod.info` does. If the item bundles multiple sub-mods you're asked
-enable/disable for each one; results are cached under
-`.cache/steamcmd-scratch/` (gitignored) so repeat lookups are fast. Pass
-`--no-lookup` to skip Steam/Docker and enter everything by hand instead
-(e.g. no internet/Docker access). Then:
+Adding a mod is a two-step process, split so the slow part (the actual
+Workshop download) only happens once, done by the server itself instead of
+by tooling:
+
+1. `scripts/add-mod.py testing <workshop_id>` (or omit the ID and it'll
+   ask) — fast, just looks up the title from the Steam Web API and appends
+   a `workshop_id`-only entry. It does **not** know the mod_id yet; the
+   public API doesn't expose it, only the item's own `mod.info` does.
+2. `scripts/sync-mods.py testing` and deploy as normal. The new entry adds
+   its `workshop_id` to `WorkshopItems=` (contributing nothing to `Mods=`
+   yet), so the server downloads it on its own the next time it starts.
+3. Once it's downloaded, run `scripts/sync-submods.py testing` — this
+   reads `mod.info` straight out of the already-downloaded content in the
+   environment's volume (no separate SteamCMD call, so it's fast) and
+   fills in `mod_id` (single mod) or `sub_mods` (multiple bundled mods,
+   asking nothing — newly found sub-mods default enabled; edit
+   `mods.yaml` by hand to disable any). Entries that are already resolved
+   are left alone; pass `--force` to re-resolve them too (existing
+   `enabled: false` choices are preserved for sub-mod ids that still
+   exist).
+4. `scripts/sync-mods.py testing` again to write the now-resolved
+   `Mods=`, then redeploy (restart) so the mod actually activates.
 
 ```bash
-python3 scripts/sync-mods.py testing   # add --dry-run to preview first
 git add testing/mods.yaml testing/config
 git commit -m "Enable ExampleMod"
 ```
 
-Requires `python3` with `pyyaml`, and `docker` for the Steam lookup (the
-sync step itself only edits the checked-in ini, it doesn't need to run on
-the server).
+Requires `python3` with `pyyaml`. `add-mod.py` and `sync-mods.py` need no
+Docker access (the former just makes an HTTPS call, the latter only edits
+the checked-in ini); `sync-submods.py` needs `docker` to read the
+environment's volume, but talks only to the local Docker daemon, not Steam.
 
 **Unstable/beta build**: set `PZ_BETA_BRANCH` in `testing/.env` or
 `prod/.env` to a SteamCMD beta branch name (e.g. `unstable` for the build 42
