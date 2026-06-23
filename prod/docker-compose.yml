@@ -8,7 +8,9 @@ services:
     entrypoint:
       - sh
       - -c
-      - "mkdir -p /dest/Zomboid/Server && cp -a /src/. /dest/Zomboid/Server/"
+      - "mkdir -p /dest/Zomboid/Server && cp -a /src/. /dest/Zomboid/Server/ && chown -R 1000:1000 /dest"
+      # 1000:1000 is the jthomastek/project-zomboid-server image's "ubuntu" user;
+      # without this it can't write its own save/log/backup data after config-sync runs as root.
 
   pz:
     image: jthomastek/project-zomboid-server:1.0.0
