@@ -13,7 +13,7 @@ image. `testing` tracks `:latest`; `prod` is pinned to `:1.0.0` for stability.
 - `scripts/pull-config.sh` — pulls generated server config out of a running container into `config/`
 - `scripts/sync-mods.py` — writes `Mods=`/`WorkshopItems=` into `config/<name>.ini` from `mods.yaml`
 - `scripts/pz-bootstrap.sh` — replaces the image's default startup script to support `PZ_BETA_BRANCH`
-- `scripts/add-mod.py` — interactively appends a mod entry to `mods.yaml`
+- `scripts/add-mod.py` — looks up a Workshop ID on Steam and appends the resulting mod entry to `mods.yaml`
 - `scripts/wipe-world.sh` — deletes the saved world/player database for a fresh map, keeping config and the installed game server
 
 Each environment has its own named Docker volume (`pz_testing_data` /
@@ -74,9 +74,17 @@ rerun and stale volume state will stick around.
 hand-editing the ini's `Mods=`/`WorkshopItems=` lines directly. Each entry
 is one Steam Workshop item; items that bundle several sub-mods can disable
 individual sub-mods while keeping the rest (see the comments at the top of
-`testing/mods.yaml` for the full schema). Add an entry interactively with
-`scripts/add-mod.py testing` (asks for the Workshop ID, optional sub-mods,
-and enable/disable per sub-mod) instead of hand-editing the YAML, then:
+`testing/mods.yaml` for the full schema).
+
+Add an entry with `scripts/add-mod.py testing <workshop_id>` (or omit the
+ID and it'll ask) instead of hand-editing the YAML. It fetches the title
+from Steam, then downloads the item anonymously via SteamCMD to read its
+real `mod.info` — the public Steam API doesn't expose mod IDs, only
+`mod.info` does. If the item bundles multiple sub-mods you're asked
+enable/disable for each one; results are cached under
+`.cache/steamcmd-scratch/` (gitignored) so repeat lookups are fast. Pass
+`--no-lookup` to skip Steam/Docker and enter everything by hand instead
+(e.g. no internet/Docker access). Then:
 
 ```bash
 python3 scripts/sync-mods.py testing   # add --dry-run to preview first
@@ -84,8 +92,9 @@ git add testing/mods.yaml testing/config
 git commit -m "Enable ExampleMod"
 ```
 
-Requires `python3` with `pyyaml` installed locally — it only edits the
-checked-in ini, it doesn't need to run on the server itself.
+Requires `python3` with `pyyaml`, and `docker` for the Steam lookup (the
+sync step itself only edits the checked-in ini, it doesn't need to run on
+the server).
 
 **Unstable/beta build**: set `PZ_BETA_BRANCH` in `testing/.env` or
 `prod/.env` to a SteamCMD beta branch name (e.g. `unstable` for the build 42
