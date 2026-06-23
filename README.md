@@ -13,6 +13,8 @@ image. `testing` tracks `:latest`; `prod` is pinned to `:1.0.0` for stability.
 - `scripts/pull-config.sh` — pulls generated server config out of a running container into `config/`
 - `scripts/sync-mods.py` — writes `Mods=`/`WorkshopItems=` into `config/<name>.ini` from `mods.yaml`
 - `scripts/pz-bootstrap.sh` — replaces the image's default startup script to support `PZ_BETA_BRANCH`
+- `scripts/add-mod.py` — interactively appends a mod entry to `mods.yaml`
+- `scripts/wipe-world.sh` — deletes the saved world/player database for a fresh map, keeping config and the installed game server
 
 Each environment has its own named Docker volume (`pz_testing_data` /
 `pz_prod_data`), so testing and prod never share save data, even if run on
@@ -72,7 +74,9 @@ rerun and stale volume state will stick around.
 hand-editing the ini's `Mods=`/`WorkshopItems=` lines directly. Each entry
 is one Steam Workshop item; items that bundle several sub-mods can disable
 individual sub-mods while keeping the rest (see the comments at the top of
-`testing/mods.yaml` for the full schema). After editing:
+`testing/mods.yaml` for the full schema). Add an entry interactively with
+`scripts/add-mod.py testing` (asks for the Workshop ID, optional sub-mods,
+and enable/disable per sub-mod) instead of hand-editing the YAML, then:
 
 ```bash
 python3 scripts/sync-mods.py testing   # add --dry-run to preview first
@@ -94,13 +98,31 @@ the stock image when it's empty). Restart with `docker compose up -d
 
 Switching branches on a volume with existing saves can make them fail to
 load (world formats can differ between branches, e.g. build 41 vs. build
-42) — use this on testing with a save you're fine losing, or wipe the
-volume (`docker compose down -v`) before switching.
+42) — use this on testing with a save you're fine losing, or wipe the world
+first with `scripts/wipe-world.sh testing` (see below).
 
 Note: SteamCMD's anonymous login intermittently fails the first attempt in
 a session with `ERROR! Failed to install app ... (Missing configuration)`
 regardless of branch — `pz-bootstrap.sh` retries automatically (5 attempts,
 5s apart) before giving up.
+
+## Wiping the world
+
+`scripts/wipe-world.sh <testing|prod>` deletes the saved map and player
+database for a fresh start, stopping the server first and asking you to
+type `wipe` to confirm (pass `--yes` to skip the prompt, e.g. for
+non-interactive use). It leaves server config, `mods.yaml`-derived config,
+and the installed game server alone — it does **not** re-download
+anything. This is deliberately more surgical than `docker compose down -v`:
+that would also delete the installed game server (it shares the same
+volume as the saves), forcing a full multi-GB reinstall just to reset a
+map.
+
+```bash
+scripts/wipe-world.sh testing
+# then bring it back up with a fresh world:
+(cd testing && docker compose up -d)
+```
 
 ## Deploying to a remote host
 
