@@ -17,6 +17,7 @@ services:
     container_name: pz-testing
     restart: unless-stopped
     stop_grace_period: 1m
+    command: ["bash", "/scripts/pz-bootstrap.sh"]
     depends_on:
       config-sync:
         condition: service_completed_successfully
@@ -28,6 +29,7 @@ services:
       - "${HOST_PLAYER_PORT_RANGE}:16261-16262/udp"
     volumes:
       - pz_testing_data:/home/ubuntu
+      - ../scripts/pz-bootstrap.sh:/scripts/pz-bootstrap.sh:ro
 
 volumes:
   pz_testing_data:

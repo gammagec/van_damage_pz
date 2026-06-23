@@ -12,6 +12,7 @@ image. `testing` tracks `:latest`; `prod` is pinned to `:1.0.0` for stability.
 - `scripts/deploy.sh` — deploys to a remote host over SSH
 - `scripts/pull-config.sh` — pulls generated server config out of a running container into `config/`
 - `scripts/sync-mods.py` — writes `Mods=`/`WorkshopItems=` into `config/<name>.ini` from `mods.yaml`
+- `scripts/pz-bootstrap.sh` — replaces the image's default startup script to support `PZ_BETA_BRANCH`
 
 Each environment has its own named Docker volume (`pz_testing_data` /
 `pz_prod_data`), so testing and prod never share save data, even if run on
@@ -81,6 +82,25 @@ git commit -m "Enable ExampleMod"
 
 Requires `python3` with `pyyaml` installed locally — it only edits the
 checked-in ini, it doesn't need to run on the server itself.
+
+**Unstable/beta build**: set `PZ_BETA_BRANCH` in `testing/.env` or
+`prod/.env` to a SteamCMD beta branch name (e.g. `unstable` for the build 42
+test branch) to run that build instead of the default stable branch. Leave
+it empty for stable. The `pz` service overrides the image's default startup
+command with `scripts/pz-bootstrap.sh`, which passes `-beta
+$PZ_BETA_BRANCH` through to `steamcmd` when set (and behaves identically to
+the stock image when it's empty). Restart with `docker compose up -d
+--force-recreate` to switch branches.
+
+Switching branches on a volume with existing saves can make them fail to
+load (world formats can differ between branches, e.g. build 41 vs. build
+42) — use this on testing with a save you're fine losing, or wipe the
+volume (`docker compose down -v`) before switching.
+
+Note: SteamCMD's anonymous login intermittently fails the first attempt in
+a session with `ERROR! Failed to install app ... (Missing configuration)`
+regardless of branch — `pz-bootstrap.sh` retries automatically (5 attempts,
+5s apart) before giving up.
 
 ## Deploying to a remote host
 
