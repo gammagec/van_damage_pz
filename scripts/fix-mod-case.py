@@ -60,12 +60,19 @@ def main() -> None:
 
     volume = f"pz_{args.environment}_data"
     print(f"Fixing mod case in volume: {volume}")
-    print()
+    print("Starting container (may take a moment)...")
 
     result = subprocess.run(
         ["docker", "run", "--rm", "-v", f"{volume}:/dest", "alpine", "sh", "-c", SCRIPT],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
     )
-    sys.exit(result.returncode)
+    if result.stdout:
+        print(result.stdout, end="")
+    if result.returncode != 0:
+        print(result.stderr or "(no error output)", file=sys.stderr)
+        sys.exit(result.returncode)
 
 
 if __name__ == "__main__":
