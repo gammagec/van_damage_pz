@@ -10,17 +10,26 @@ so both spellings resolve correctly.
 Safe to rerun -- symlinks that already exist are silently skipped.
 Only touches mods/ subdirectories inside Workshop content, never save data.
 
+If the pz container is running it execs into it (avoids mounting the volume
+a second time). If the server is stopped it falls back to a temporary alpine
+container.
+
 Usage: scripts/fix-mod-case.py <testing|prod>
 """
 import argparse
 import subprocess
 import sys
 
-PZ_APP_ID = "108600"
+# Path where the pz container mounts the volume (from docker-compose.yml).
+PZ_MOUNT = "/home/ubuntu"
+# Fallback mount point for a temporary alpine container (when pz is stopped).
+ALPINE_MOUNT = "/mnt"
 
+# The shell script runs inside whichever container we land in.
+# MOD_BASE is set to the correct mount point before it's invoked.
 SCRIPT = r"""
 set -e
-CONTENT_BASE="/dest/pzserver/steamapps/workshop/content/108600"
+CONTENT_BASE="$MOD_BASE/pzserver/steamapps/workshop/content/108600"
 if [ ! -d "$CONTENT_BASE" ]; then
     echo "No workshop content found -- deploy the server first and let it download mods."
     exit 0
@@ -43,7 +52,7 @@ for item_dir in "$CONTENT_BASE"/*/; do
             skipped=$((skipped + 1))
             continue
         fi
-        echo "  ${mods_dir#/dest/}/${lower} -> ${folder}"
+        echo "  ${lower} -> ${folder}"
         ln -s "$folder" "$symlink"
         fixed=$((fixed + 1))
     done
@@ -52,22 +61,38 @@ echo ""
 echo "Created ${fixed} symlink(s), skipped ${skipped} already-existing."
 """
 
+CONTAINERS = {"testing": "pz-testing", "prod": "pz-prod"}
+VOLUMES = {"testing": "pz_testing_data", "prod": "pz_prod_data"}
+
+
+def is_running(container: str) -> bool:
+    r = subprocess.run(
+        ["docker", "inspect", "--format", "{{.State.Running}}", container],
+        capture_output=True, text=True,
+    )
+    return r.stdout.strip() == "true"
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("environment", choices=["testing", "prod"])
     args = parser.parse_args()
 
-    volume = f"pz_{args.environment}_data"
-    print(f"Fixing mod case in volume: {volume}")
-    print("Starting container (may take a moment)...")
+    env = args.environment
+    container = CONTAINERS[env]
+    volume = VOLUMES[env]
 
-    result = subprocess.run(
-        ["docker", "run", "--rm", "-v", f"{volume}:/dest", "alpine", "sh", "-c", SCRIPT],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+    if is_running(container):
+        print(f"Exec-ing into running container ({container})...")
+        cmd = ["docker", "exec", "-e", f"MOD_BASE={PZ_MOUNT}", container, "sh", "-c", SCRIPT]
+    else:
+        print(f"pz container not running -- using temporary alpine container...")
+        cmd = ["docker", "run", "--rm",
+               "-e", f"MOD_BASE={ALPINE_MOUNT}",
+               "-v", f"{volume}:{ALPINE_MOUNT}",
+               "alpine", "sh", "-c", SCRIPT]
+
+    result = subprocess.run(cmd, capture_output=True, encoding="utf-8", errors="replace")
     if result.stdout:
         print(result.stdout, end="")
     if result.returncode != 0:
