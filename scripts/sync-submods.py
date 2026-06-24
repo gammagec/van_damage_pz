@@ -52,17 +52,30 @@ def parse_mod_info(text: str) -> dict[str, str]:
 
 
 def find_mods_in_volume(volume: str, workshop_id: str) -> list[tuple[str, str]]:
-    """Read mod.info(s) for workshop_id directly out of the named volume."""
+    """Read mod.info(s) for workshop_id directly out of the named volume.
+
+    Each sub-mod's canonical declaration is the *shallowest* mod.info under
+    its mods/<Folder>/ tree. Most mods have it directly at
+    mods/<Folder>/mod.info, with deeper copies under build-version
+    subfolders (e.g. mods/<Folder>/42/mod.info) repeating the same id. But
+    some mods ship *only* a version-specific copy with no top-level
+    fallback (e.g. mods/<Folder>/42/mod.info and nothing directly under
+    <Folder>/) -- searching only at a fixed depth misses those entirely, so
+    every mod.info under mods/ is found and grouped by its mods/<Folder>/
+    folder, then the shallowest one per folder is used.
+    """
     content_path = f"/dest/pzserver/steamapps/workshop/content/{PZ_APP_ID}/{workshop_id}"
     script = f"""
     set -e
-    results=$(find '{content_path}/mods' -mindepth 2 -maxdepth 2 -iname mod.info 2>/dev/null || true)
+    results=$(find '{content_path}/mods' -iname mod.info 2>/dev/null || true)
     if [ -z "$results" ]; then
       results=$(find '{content_path}' -maxdepth 1 -iname mod.info 2>/dev/null || true)
     fi
     printf '%s\\n' "$results" | while IFS= read -r f; do
       [ -n "$f" ] || continue
       echo '===MODINFO==='
+      echo "$f"
+      echo '===CONTENT==='
       cat "$f"
     done
     """
@@ -73,13 +86,29 @@ def find_mods_in_volume(volume: str, workshop_id: str) -> list[tuple[str, str]]:
         errors="replace",
     )
     blocks = (result.stdout or "").split("===MODINFO===")[1:]
+
+    mods_root = f"{content_path}/mods/"
+    best_for_folder: dict[str, tuple[int, dict[str, str]]] = {}
+    for block in blocks:
+        path, _, content = block.partition("===CONTENT===\n")
+        path = path.strip()
+        info = parse_mod_info(content)
+        if not info.get("id"):
+            continue
+        if path.startswith(mods_root):
+            rel_parts = path[len(mods_root):].split("/")
+            folder, depth = rel_parts[0], len(rel_parts)
+        else:
+            # Legacy items with no mods/ wrapper at all.
+            folder, depth = path, 0
+        existing = best_for_folder.get(folder)
+        if existing is None or depth < existing[0]:
+            best_for_folder[folder] = (depth, info)
+
     mods: list[tuple[str, str]] = []
     seen_ids: set[str] = set()
-    for block in blocks:
-        info = parse_mod_info(block)
-        mod_id = info.get("id")
-        if not mod_id:
-            continue
+    for _, info in best_for_folder.values():
+        mod_id = info["id"]
         if mod_id in seen_ids:
             # Some mods ship sibling folders that declare the same id as
             # version-specific alternatives rather than nesting them under
