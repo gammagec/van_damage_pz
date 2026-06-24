@@ -16,6 +16,7 @@ image. `testing` tracks `:latest`; `prod` is pinned to `:1.0.0` for stability.
 - `scripts/add-mod.py` — looks up a Workshop ID's title on Steam and appends an entry to `mods.yaml`
 - `scripts/sync-submods.py` — resolves `mod_id`/`sub_mods` in `mods.yaml` from already-downloaded Workshop content
 - `scripts/wipe-world.sh` — deletes the saved world/player database for a fresh map, keeping config and the installed game server
+- `scripts/fix-mod-case.sh` — creates lowercase symlinks for mod folders so Windows-authored mods work on Linux's case-sensitive filesystem
 
 Each environment has its own named Docker volume (`pz_testing_data` /
 `pz_prod_data`), so testing and prod never share save data, even if run on
@@ -128,6 +129,27 @@ Note: SteamCMD's anonymous login intermittently fails the first attempt in
 a session with `ERROR! Failed to install app ... (Missing configuration)`
 regardless of branch — `pz-bootstrap.sh` retries automatically (5 attempts,
 5s apart) before giving up.
+
+## Fixing mod case sensitivity
+
+Some mods are authored on Windows and reference their own folder in lowercase
+within their Lua scripts (e.g. `require("lifestyle/...")`), but ship with a
+mixed-case folder name (e.g. `mods/Lifestyle/`). Linux's case-sensitive
+filesystem rejects those references, producing `FileNotFoundException` errors
+at startup.
+
+Run this once after the server has downloaded its mods (and again whenever you
+add new mods):
+
+```bash
+scripts/fix-mod-case.sh testing
+```
+
+It creates a lowercase symlink next to each mod folder whose name differs from
+its own lowercase form (e.g. `lifestyle -> Lifestyle`). Symlinks that already
+exist are silently skipped, so it's safe to rerun. It only touches
+`mods/` subdirectories inside Workshop content — it never touches saves or
+config.
 
 ## Wiping the world
 
