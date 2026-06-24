@@ -16,7 +16,7 @@ image. `testing` tracks `:latest`; `prod` is pinned to `:1.0.0` for stability.
 - `scripts/add-mod.py` — looks up a Workshop ID's title on Steam and appends an entry to `mods.yaml`
 - `scripts/sync-submods.py` — resolves `mod_id`/`sub_mods` in `mods.yaml` from already-downloaded Workshop content
 - `scripts/wipe-world.sh` — deletes the saved world/player database for a fresh map, keeping config and the installed game server
-- `scripts/fix-mod-case.sh` — creates lowercase symlinks for mod folders so Windows-authored mods work on Linux's case-sensitive filesystem
+- `scripts/fix-mod-case.py` — creates lowercase symlinks for mod folders so Windows-authored mods work on Linux's case-sensitive filesystem
 
 Each environment has its own named Docker volume (`pz_testing_data` /
 `pz_prod_data`), so testing and prod never share save data, even if run on
@@ -142,7 +142,7 @@ Run this once after the server has downloaded its mods (and again whenever you
 add new mods):
 
 ```bash
-scripts/fix-mod-case.sh testing
+python scripts/fix-mod-case.py testing
 ```
 
 It creates a lowercase symlink next to each mod folder whose name differs from
