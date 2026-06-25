@@ -239,6 +239,7 @@ mods:
   - workshop_id: "3634569678"
     name: "Better Safehouse [B42.17- MP]"
     mod_id: BetterSafehouse
+    enabled: false
 
   - workshop_id: "3461263912"
     name: "Clean HotBar [B42]"
