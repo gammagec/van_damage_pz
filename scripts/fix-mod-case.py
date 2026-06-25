@@ -92,11 +92,8 @@ def main() -> None:
                "-v", f"{volume}:{ALPINE_MOUNT}",
                "alpine", "sh", "-c", SCRIPT]
 
-    result = subprocess.run(cmd, capture_output=True, encoding="utf-8", errors="replace")
-    if result.stdout:
-        print(result.stdout, end="")
+    result = subprocess.run(cmd)
     if result.returncode != 0:
-        print(result.stderr or "(no error output)", file=sys.stderr)
         sys.exit(result.returncode)
 
 
