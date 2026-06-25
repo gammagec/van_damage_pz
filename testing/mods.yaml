@@ -276,3 +276,23 @@ mods:
   - workshop_id: "3669550831"
     name: "[FIXED] Proximity Inventory B42.19+ [SP/MP]"
     mod_id: ProximityInventory
+
+  - workshop_id: "3747396551"
+    name: "Food Drying [B42]"
+    mod_id: FoodDrying
+
+  - workshop_id: "3747795879"
+    name: "[B42] WildMaker"
+    mod_id: WildMaker
+
+  - workshop_id: "3716522633"
+    name: "[B41,B42] Show VHS skills in tooltip"
+    mod_id: VHSSkillNameInTooltip
+
+  - workshop_id: "3738669352"
+    name: "Become Desensitized [B42.19 Unofficial SP/MP]"
+    mod_id: BecomeDesensitizedB42Unofficial
+
+  - workshop_id: "3678109350"
+    name: "Chopper Drop [B42][MP][SP]"
+    mod_id: ChopperDrop
