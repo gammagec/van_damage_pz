@@ -4,6 +4,71 @@
 
 This is the testing server where we trial mods and settings before they land on prod. Things may change or break. If something feels off, say so — that's the point.
 
+> **Before you join:** This server runs 51 mods. Project Zomboid defaults to 2 GB of RAM for its Java process — that's not enough. You will likely crash or freeze on the loading screen without allocating more. See [Allocating More RAM](#allocating-more-ram) below before your first session.
+
+---
+
+## Joining the Server
+
+### Step 1 — Add the server to your list
+
+1. Launch Project Zomboid and click **Join** from the main menu
+2. Select the **Internet** tab at the top
+3. Click **Add** (bottom of the server list) to open the server entry form
+4. Fill in the fields:
+   - **Name:** Van Damage Testing (or whatever you like)
+   - **IP:** `damage.servegame.com`
+   - **Port:** `16261`
+   - Leave password blank — the server is open
+5. Click **Add** to save it, then double-click the entry to connect
+
+### Step 2 — Create your account
+
+The first time you connect you'll be asked for a **username** and **password**. This is your server account — it's not your Steam name, and it's not shared with any other server. Pick something you'll remember; there's no recovery if you forget it.
+
+### Step 3 — Create your character
+
+After logging in you'll land on the character creation screen:
+
+1. Pick a **profession** — each gives a head start in certain skills
+2. Spend your **trait points** — you have the normal pool plus **12 bonus free points** on this server
+3. Click **Spawn** and pick a location (default: Muldraugh)
+
+You're in. The server **pauses when empty** so you won't miss anything if you're the first one on.
+
+---
+
+## Allocating More RAM
+
+Project Zomboid is a Java game and defaults to a 2 GB heap. With 51 mods loaded, that ceiling is too low — expect crashes or a frozen loading screen without this fix.
+
+**The Steam launch options field does not work reliably for this.** You need to edit the game's JSON config file directly.
+
+### Finding the file
+
+1. Open Steam and go to your Library
+2. Right-click **Project Zomboid** → **Manage** → **Browse local files**
+3. This opens the game's install folder (something like `Steam\steamapps\common\ProjectZomboid`)
+4. Find the file **`ProjectZomboid64.json`** in that folder and open it in a text editor (Notepad works)
+
+### What to change
+
+Look for a line containing `-Xmx` — it controls the maximum heap size. It will look something like:
+
+```
+"-Xmx2048m"
+```
+
+Change the value to at least **4096m** (4 GB). If you have 16 GB of system RAM or more, **8192m** is better and gives you headroom:
+
+```
+"-Xmx8192m"
+```
+
+Save the file, then launch the game normally through Steam. You do not need to set anything in Steam's launch options.
+
+> **How much to allocate:** Leave at least 4–6 GB free for Windows and other apps. If your system has 8 GB total, use `4096m`. If you have 16 GB, use `8192m`. More than 16 GB allocated rarely helps and can actually hurt due to garbage collection pauses.
+
 ---
 
 ## Server Basics
