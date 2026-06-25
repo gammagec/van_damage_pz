@@ -7,7 +7,7 @@ SandboxVars = {
     -- 4 = Normal
     -- 5 = Low
     -- 6 = None
-    Zombies = 3,
+    Zombies = 4,
     -- How zombies are distributed across the map. Default = Urban Focused
     -- 1 = Urban Focused
     -- 2 = Uniform
@@ -19,7 +19,7 @@ SandboxVars = {
     -- 2 = Normal
     -- 3 = Low
     -- 4 = None
-    ZombieRespawn = 4,
+    ZombieRespawn = 3,
     -- Zombie allowed to migrate to empty cells.
     ZombieMigrate = true,
     -- Default = 1 Hour, 30 Minutes
@@ -50,7 +50,7 @@ SandboxVars = {
     -- 25 = 22 Hours
     -- 26 = 23 Hours
     -- 27 = Real-time
-    DayLength = 3,
+    DayLength = 6,
     StartYear = 1,
     -- Month in which the game starts. Default = July
     -- 1 = January
@@ -107,7 +107,7 @@ SandboxVars = {
     -- 7 = 2 - 6 Months
     -- 8 = 6 - 12 Months
     -- 9 = Disabled
-    WaterShut = 2,
+    WaterShut = 7,
     -- How long after the default start date (July 9, 1993) that the world's electricity turns off for good. Default = 14 - 30 Days
     -- 1 = Instant
     -- 2 = 14 - 30 Days
@@ -118,7 +118,7 @@ SandboxVars = {
     -- 7 = 2 - 6 Months
     -- 8 = 6 - 12 Months
     -- 9 = Disabled
-    ElecShut = 2,
+    ElecShut = 7,
     -- How long alarm batteries can last for after the power shuts off. Default = 0 - 30 Days
     -- 1 = Instant
     -- 2 = 0 - 30 Days
@@ -289,7 +289,7 @@ SandboxVars = {
     -- When greater than 0, loot will not respawn in zones that have been visited within this number of in-game hours. Min: 0 Max: 2147483647 Default: 0
     SeenHoursPreventLootRespawn = 0,
     -- When greater than 0, after X hours, all containers in towns and trailer parks in the world will respawn loot. To spawn loot a container must have been looted at least once. Loot respawn is not impacted by visibility or subsequent looting. Min: 0 Max: 2147483647 Default: 0
-    HoursForLootRespawn = 0,
+    HoursForLootRespawn = 8,
     -- Containers with a number of items greater, or equal to, this setting will not respawn. Min: 0 Max: 2147483647 Default: 5
     MaxItemsForLootRespawn = 5,
     -- Items will not respawn in buildings that players have barricaded or built in.
@@ -341,7 +341,7 @@ SandboxVars = {
     -- 2 = Once
     -- 3 = Sometimes
     -- 4 = Often
-    Helicopter = 2,
+    Helicopter = 1,
     -- How often zombie-attracting metagame events like distant gunshots will occur. Default = Sometimes
     -- 1 = Never
     -- 2 = Sometimes
@@ -372,7 +372,7 @@ SandboxVars = {
     -- 6 = Very Often
     AnnotatedMapChance = 4,
     -- Adds free points during character creation. Min: -100 Max: 100 Default: 0
-    CharacterFreePoints = 0,
+    CharacterFreePoints = 12,
     -- Gives player-built constructions extra hit points so they are  more resistant to zombie damage. Default = Normal
     -- 1 = Very Low
     -- 2 = Low
@@ -385,7 +385,7 @@ SandboxVars = {
     -- 2 = Dark
     -- 3 = Normal
     -- 4 = Bright
-    NightDarkness = 3,
+    NightDarkness = 4,
     -- The time from dusk to dawn. Default = Normal
     -- 1 = Always Night
     -- 2 = Long
@@ -401,7 +401,7 @@ SandboxVars = {
     -- 3 = High
     InjurySeverity = 2,
     -- How long, in hours, before dead zombie bodies disappear from the world.  If 0, maggots will not spawn on corpses. Min: -1.00 Max: 2147483647.00 Default: 216.00
-    HoursForCorpseRemoval = 216.0,
+    HoursForCorpseRemoval = 100.0,
     -- The impact that nearby decaying bodies has on the player's health and emotions. Default = Normal
     -- 1 = None
     -- 2 = Low
@@ -498,7 +498,7 @@ SandboxVars = {
     -- 6 = Full
     InitialGas = 2,
     -- If enabled, gas pumps will never run out of fuel
-    FuelStationGasInfinite = false,
+    FuelStationGasInfinite = true,
     -- The minimum amount of gasoline that can spawn in gas pumps. Check the "Advanced" box below to use a custom amount. Min: 0.00 Max: 1.00 Default: 0.00
     FuelStationGasMin = 0.0,
     -- The maximum amount of gasoline that can spawn in gas pumps. Check the "Advanced" box below to use a custom amount. Min: 0.00 Max: 1.00 Default: 0.80
@@ -706,7 +706,7 @@ SandboxVars = {
     -- 4 = 1 point penalty for every negative trait selected after the first
     NegativeTraitsPenalty = 1,
     -- The number of in-game minutes it takes to read one page of a skill book. Min: 0.00 Max: 60.00 Default: 2.00
-    MinutesPerPage = 2.0,
+    MinutesPerPage = 0.05,
     -- When enabled, crops and herbs grown inside buildings will die. Does not affect houseplants.
     KillInsideCrops = true,
     -- When enabled, the growth of plants is affected by seasons.
@@ -718,19 +718,19 @@ SandboxVars = {
     -- The abundance of harvested crops. Min: 0.10 Max: 10.00 Default: 1.00
     FarmingAmountNew = 1.0,
     -- The chance that any building will already be looted when found. Check the "Advanced" box below to use a custom number. Min: 0 Max: 200 Default: 25
-    MaximumLooted = 25,
+    MaximumLooted = 0,
     -- How long it takes for Maximum Looted Building Chance to be reached. Min: 0 Max: 3650 Default: 90
     DaysUntilMaximumLooted = 90,
     -- The chance that any rural building will already be looted when found. Check the "Advanced" box below to use a custom number. Min: 0.00 Max: 2.00 Default: 0.50
-    RuralLooted = 0.5,
+    RuralLooted = 0.00,
     -- The maximum loot that won't spawn when Days Until Maximum Diminished Loot is reached. Check the "Advanced" box below to use an exact percentage. Min: 0 Max: 100 Default: 20
     MaximumDiminishedLoot = 20,
     -- How long it takes for Maximum Diminished Loot Percentage to be reached. Min: 0 Max: 3650 Default: 3650
     DaysUntilMaximumDiminishedLoot = 3650,
     -- Functions as a multiplier when applying muscle strain from swinging weapons or carrying heavy loads. Min: 0.00 Max: 10.00 Default: 0.70
-    MuscleStrainFactor = 0.7,
+    MuscleStrainFactor = 0.6,
     -- Functions as a multiplier when applying discomfort from worn items. Min: 0.00 Max: 10.00 Default: 0.80
-    DiscomfortFactor = 0.8,
+    DiscomfortFactor = 0.7,
     -- If greater than zero damage can be taken from serious wound infections. Min: 0.00 Max: 10.00 Default: 1.00
     WoundInfectionFactor = 1.0,
     -- If true clothing with randomized tints will not be so dark to be virtually black.
@@ -777,11 +777,11 @@ SandboxVars = {
     },
     Map = {
         -- If enabled, a mini-map window will be available.
-        AllowMiniMap = false,
+        AllowMiniMap = true,
         -- If enabled, the world map can be accessed.
         AllowWorldMap = true,
         -- If enabled, the world map will be completely filled in on starting the game.
-        MapAllKnown = false,
+        MapAllKnown = true,
         -- If enabled, maps can't be read unless there's a source of light available.
         MapNeedsLight = true,
     },
@@ -1134,7 +1134,7 @@ SandboxVars = {
         ColorFilter = false,
         PryBuildingDoors = true,
         PryGarageDoors = true,
-        PrySafeDoors = false,
+        PrySafeDoors = true,
         PryWindows = true,
         PryVehicleDoors = true,
         ShatterVehicleWindows = true,
@@ -1224,7 +1224,7 @@ SandboxVars = {
     GydeTraitMags = {
         NegativeToPositive = false,
         ReadRemove = false,
-        ReadDelete = false,
+        ReadDelete = true,
         -- Min: 0 Max: 8766 Default: 0
         DaysBeforeRead = 0,
         SpawnRate = 3,
@@ -1361,7 +1361,7 @@ SandboxVars = {
         -- Min: 0 Max: 10000 Default: 0
         MaxRecipesPerJournal = 0,
         -- Min: 0.10 Max: 10.00 Default: 1.00
-        JournalXPMultiplier = 1.0,
+        JournalXPMultiplier = 0.75,
         EnablePassiveSkillsLoot = true,
         EnableWornJournalSpawns = true,
         -- Min: 0.10 Max: 100.00 Default: 1.00
@@ -1517,8 +1517,8 @@ SandboxVars = {
         EnableAnimatedJournalVisuals = true,
         -- Min: 10 Max: 200 Default: 50
         JournalUIPaginationThreshold = 50,
-        AllowOthersToOpenJournals = true,
-        AllowOthersToClaimFromJournals = true,
+        AllowOthersToOpenJournals = false,
+        AllowOthersToClaimFromJournals = false,
         AllowNegativeTraits = false,
         ExcludePassiveSkillRelatedTraits = true,
         AllowPlayerJournalDissolution = false,
@@ -1622,7 +1622,7 @@ SandboxVars = {
         -- Min: 0 Max: 200 Default: 10
         CustomClaimRestrictDistance = 10,
         PhunZones2NoSafehouseBlock = true,
-        VanillaSafehouseEnabled = true,
+        VanillaSafehouseEnabled = false,
         -- Min: 0 Max: 10000 Default: 0
         VanillaSafehouseAreaLimit = 0,
         -- Min: 0 Max: 10000 Default: 0
