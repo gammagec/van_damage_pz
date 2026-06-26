@@ -410,3 +410,4 @@ mods:
 
   - workshop_id: "3722357516"
     name: "[Join/Leave] Player Message"
+    mod_id: JoinLeaveMessage

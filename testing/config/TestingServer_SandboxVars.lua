@@ -1748,4 +1748,75 @@ SandboxVars = {
     ProximityInventory = {
         ZombieOnly = false,
     },
+    BecomeDesensitized = {
+        -- Min: 1 Max: 10000 Default: 1000
+        MinimumZombieKills = 1000,
+        -- Min: 1 Max: 10000 Default: 2000
+        MaximumZombieKills = 2000,
+        ConsiderTraits = true,
+        ConsiderOccupations = true,
+    },
+    ChopperDrop = {
+        Enabled = true,
+        TimerMode = 1,
+        -- Min: 1 Max: 1440 Default: 180
+        EventFrequency = 180,
+        -- Min: 5 Max: 720 Default: 45
+        DespawnTimer = 45,
+        UseCustomLoot = false,
+        -- Min: 1 Max: 100 Default: 15
+        LootQuantity = 15,
+        -- Min: 0 Max: 100 Default: 30
+        ZombieHordeSize = 30,
+        -- Min: 50 Max: 500 Default: 200
+        SoundRadius = 200,
+        -- Min: 0 Max: 100 Default: 50
+        HelicopterVolume = 50,
+        -- Min: 100 Max: 1000 Default: 500
+        ZombieAttractionRadius = 500,
+        ChopperPattern = 1,
+        ChopperLeavesOnArrival = false,
+        -- Min: 5 Max: 50 Default: 20
+        ChopperLeaveRadius = 20,
+        -- Min: 0 Max: 10 Default: 0
+        MinPlayers = 0,
+        -- Min: 50 Max: 2000 Default: 200
+        MinDistance = 200,
+        -- Min: 100 Max: 5000 Default: 800
+        MaxDistance = 800,
+        RandomEventsEnabled = true,
+        RadioEnabled = true,
+        -- Min: 1 Max: 100 Default: 5
+        RadioDropChance = 5,
+        -- Min: 1 Max: 20 Default: 5
+        RadioCharges = 5,
+        -- Min: 0 Max: 120 Default: 60
+        RadioHeadStart = 60,
+        CallAirdropEnabled = true,
+        -- Min: 0 Max: 1440 Default: 30
+        CallAirdropCooldown = 30,
+        -- Min: 1 Max: 30 Default: 1
+        SpawnRetryDelay = 1,
+        SpawnFailAlert = true,
+        SpawnFailAlertMessage = "Supply drop cancelled — bad landing zone. Retrying soon.",
+        AlertEnabled = true,
+        AlertMessageStart = "Supply drop incoming! Check your map.",
+        AlertMessageEnd = "The supply drop has expired.",
+    },
+    DAMN = {
+        AllowShitSpawns = true,
+        AllowPro440Spawns = true,
+        AllowDemonChildSpawns = false,
+        AllowMrBusSpawns = true,
+        AllowChonkerSpawns = true,
+        AllowCashcowSpawns = true,
+        AllowMcBoxySpawns = true,
+    },
+    Skateboard = {
+        -- Min: 0.10 Max: 5.00 Default: 1.70
+        skateboardWalkSpeedMultiplier = 1.7,
+        -- Min: 0.10 Max: 5.00 Default: 2.50
+        skateboardRunSpeedMultiplier = 2.5,
+        skateboardImmersive = true,
+    },
 }
