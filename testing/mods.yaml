@@ -296,3 +296,117 @@ mods:
   - workshop_id: "3678109350"
     name: "Chopper Drop [B42][MP][SP]"
     mod_id: ChopperDrop
+
+  - workshop_id: "3743371090"
+    name: "'73 NISSAN Skyline GT-R"
+    mod_id: 73nissanGTR
+
+  - workshop_id: "3705029261"
+    name: "Red Library"
+    mod_id: REDLIBRARY
+
+  - workshop_id: "2705406713"
+    name: "Military Tool Kit"
+    mod_id: Military_Tool_Kit
+
+  - workshop_id: "3677217949"
+    name: "1967 Chevrolet Impala"
+    mod_id: 1967ChevyImpala
+
+  - workshop_id: "3730833846"
+    name: "'76 Chrysler New Yorker"
+    mod_id: 76chryslerNewYorker
+
+  - workshop_id: "3726526329"
+    name: "'78 Lamborghini Countach"
+    mod_id: 78lamboCountach
+
+  - workshop_id: "3670064951"
+    name: "Campers!"
+    mod_id: KI5campers
+
+  - workshop_id: "3330403100"
+    name: "Trailers!"
+    mod_id: KI5trailers
+
+  - workshop_id: "3631989559"
+    name: "'69 Dodge Charger"
+    mod_id: 69charger
+
+  - workshop_id: "3379334330"
+    name: "'82 Porsche 911"
+    mod_id: 82porsche911
+
+  - workshop_id: "3539691958"
+    name: "'91 Ford Ranger"
+    mod_id: 91fordRanger
+
+  - workshop_id: "3456675747"
+    name: "[B42.13+ MP] Skateboard!"
+    mod_id: SkateboardMod
+
+  - workshop_id: "3073430075"
+    name: "'93 Ford F-Series"
+    mod_id: 93fordF350
+
+  - workshop_id: "3110911330"
+    name: "'87 Ford B700/F700 Trucks"
+    mod_id: 87fordB700
+
+  - workshop_id: "3287727378"
+    name: "'92 Jeep YJ Wrangler"
+    sub_mods:
+      - id: 92jeepYJJP18
+        name: "'92 Jeep Wrangler YJ JP18"
+      - id: 92jeepYJ
+        name: "'92 Jeep Wrangler YJ"
+
+  - workshop_id: "3196180339"
+    name: "'87 Chevrolet Suburban"
+    mod_id: 87chevySuburban
+
+  - workshop_id: "2870394916"
+    name: "'86 Ford Econoline E-150 + Pop Culture vans"
+    sub_mods:
+      - id: 86fordE150
+        name: "'86 Ford Econoline E150"
+      - id: 86fordE150pd
+        name: "'86 Ford Econoline E150 Payday Escape Van"
+      - id: 86fordE150mm
+        name: "'86 Ford Econoline E150 Mystery Machine"
+      - id: 86fordE150dnd
+        name: "'86 Ford Econoline E150 Mutt Cutts van"
+      - id: 86fordE150expanded
+        name: "'86 Ford Econoline E150 Expanded"
+
+  - workshop_id: "3281755175"
+    name: "Vanilla vehicles animated"
+    sub_mods:
+      - id: VVA_PikamyDelight
+        name: "Vanilla Vehicles Animated: Pikamy's Delighter"
+      - id: VVA_cullseats
+        name: "Vanilla Vehicles Animated: disable passenger rendering"
+      - id: VanillaVehiclesAnimated
+        name: "Vanilla Vehicles Animated"
+      - id: VVA_transparentWindows
+        name: "Vanilla Vehicles Animated: window transparency BETA"
+      - id: VanillaVehiclesAnimated_SVU
+        name: "Vanilla Vehicles Animated - Standard Vehicle Upgrades Patch"
+      - id: VVA_slowdoors
+        name: "Vanilla Vehicles Animated:  Don't Activate! - ApocalypticallySlowDoors"
+        enabled: false
+      - id: VVA_snapDoors
+        name: "Vanilla Vehicles Animated: Snappy Doors"
+
+  - workshop_id: "2335368829"
+    name: "Authentic Z"
+    sub_mods:
+      - id: AuthenticZLite
+        name: "Authentic Z - Lite"
+      - id: AuthenticZBackpacks+
+        name: "Authentic Z - Backpacks+"
+      - id: Authentic Z - Current
+        name: "Authentic Z"
+
+  - workshop_id: "3722357516"
+    name: "[Join/Leave] Player Message"
