@@ -1,8 +1,412 @@
-# Mod list for the prod server. Run `scripts/sync-mods.py prod` after
+# Mod list for the testing server. Run `scripts/sync-mods.py testing` after
 # editing this file to write the resulting Mods=/WorkshopItems= lines into
-# config/ProdServer.ini.
+# config/TestingServer.ini.
 #
-# See testing/mods.yaml for the full schema documentation. Typically you'd
-# copy a validated testing/mods.yaml here once it's been proven out.
+# Each entry is one Steam Workshop item. Most workshop items contain a
+# single mod:
+#
+#   - workshop_id: "2667521636"
+#     name: "Example Single Mod"        # optional, for readability only
+#     mod_id: examplemod
+#
+# Some workshop items bundle several sub-mods under one Workshop ID. List
+# them under sub_mods to enable/disable individual sub-mods while keeping
+# the rest (and the workshop subscription itself):
+#
+#   - workshop_id: "2169435993"
+#     name: "Example Bundle"
+#     sub_mods:
+#       - id: ExampleCore
+#       - id: ExampleExtra
+#         enabled: false               # subscribed, but this sub-mod is off
+#
+# `enabled: false` at the top level of an entry disables the whole workshop
+# item (no download, no mods from it) without deleting it from this file.
+#
+# An entry with neither `mod_id` nor `sub_mods` just adds its workshop_id to
+# WorkshopItems (e.g. a map or asset pack with no mod to activate).
 
-mods: []
+mods:
+  - workshop_id: "2896041179"
+    name: "errorMagnifier"
+    mod_id: errorMagnifier
+
+  - workshop_id: "3171167894"
+    name: "that DAMN Library"
+    mod_id: damnlib
+
+  - workshop_id: "3508537032"
+    name: "NeatUI Framework [B42]"
+    mod_id: NeatUI_Framework
+
+  - workshop_id: "3402491515"
+    name: "Tsar's Common Library B42"
+    mod_id: tsarslib
+
+  - workshop_id: "3378285185"
+    name: "Starlit Library"
+    mod_id: StarlitLibrary
+
+  - workshop_id: "3403870858"
+    name: "Lifestyle: Hobbies"
+    mod_id: LifestyleHobbies
+
+  - workshop_id: "3717968421"
+    name: "Common Sense B42.19 (SP/MP)"
+    mod_id: BB_CommonSenseFix
+
+  - workshop_id: "3436537035"
+    name: "[B42] Useful Barrels"
+    sub_mods:
+      - id: UsefulBarrels
+        name: "[B42] Useful Barrels (outdated)"
+        enabled: false
+      - id: UsefulBarrelsMP
+        name: "[B42] Useful Barrels"
+
+  - workshop_id: "3546314080"
+    name: "[B42] Water Pipes"
+    mod_id: Waterpipes
+
+  - workshop_id: "3470659758"
+    name: "The Shortcut [B42]"
+    mod_id: TheShortcut
+
+  - workshop_id: "3452711271"
+    name: "darlak's H.E.C.U. [B42] | [B41]"
+    mod_id: H_E_C_U
+
+  - workshop_id: "3490188370"
+    name: "Project Cook [B42]"
+    sub_mods:
+      - id: Project_Cook_Pixel_Icon_Pack
+        name: "Project Cook Pixel Icon Pack [Legacy]"
+      - id: Project_Cook
+        name: "Project Cook [Legacy]"
+
+  - workshop_id: "3342191739"
+    name: "Gyde's Trait Magazines [B42MP]"
+    mod_id: GydeTraitMags
+
+  - workshop_id: "3465040406"
+    name: "Open All Containers [42MP]"
+    mod_id: OpenAllContainers
+
+  - workshop_id: "3577903007"
+    name: "Vanilla Foods Expanded"
+    mod_id: VanillaFoodsExpanded
+
+  - workshop_id: "2956146279"
+    name: "Rain Cleans Blood"
+    mod_id: RainCleansBlood
+
+  - workshop_id: "3536052310"
+    name: "Neat Building [B42]"
+    mod_id: Neat_Building
+
+  - workshop_id: "3502080466"
+    name: "Neat Crafting [B42]"
+    mod_id: Neat_Crafting
+
+  - workshop_id: "2866258937"
+    name: "Mini Health Panel [B41/B42.13+]"
+    mod_id: MiniHealthPanel
+
+  - workshop_id: "3422220305"
+    name: "Picking Meister"
+    mod_id: P4PickingMeister
+
+  - workshop_id: "2286124931"
+    name: "Combat Text (B40+B41+B42)"
+    mod_id: CombatText
+
+  - workshop_id: "2950902979"
+    name: "Equipment UI - Paper Doll Equipment Interface [B42/41]"
+    mod_id: EQUIPMENT_UI
+
+  - workshop_id: "2734705913"
+    name: "Map Symbol Size Slider"
+    mod_id: MapSymbolSizeSlider
+
+  - workshop_id: "2503622437"
+    name: "Skill Recovery Journal"
+    mod_id: SkillRecoveryJournal
+
+  - workshop_id: "2544353492"
+    name: "Has Been Read"
+    mod_id: P4HasBeenRead
+
+  - workshop_id: "2972289937"
+    name: "Visible Generator Range"
+    mod_id: GenRange
+
+  - workshop_id: "2944344655"
+    name: "Replace Bandage [B41, B42]"
+    mod_id: ReplaceBandage
+
+  - workshop_id: "3394588830"
+    name: "[B42] Simple Flashlight on Belt!"
+    mod_id: LightOnBelt
+
+  - workshop_id: "3610005735"
+    name: "ALICE Gear [B41/B42]"
+    mod_id: AliceGear
+
+  - workshop_id: "3421271152"
+    name: "Vanilla Clothing Expansion"
+    sub_mods:
+      - id: 1VCESTANDARD
+        name: "Vanilla Clothing Expansion"
+      - id: 1VCESTANDARDNOMP
+        name: "Vanilla Clothing Expansion [B42 Pre-MP]"
+        enabled: false
+
+  - workshop_id: "3409527910"
+    name: "Alarm Syndrome"
+    mod_id: P4AlarmSyndrome
+
+  - workshop_id: "2553809727"
+    name: "KillCount"
+    mod_id: KillCount
+
+  - workshop_id: "3402493701"
+    name: "Autotsar Trailers B42"
+    mod_id: autotsartrailers
+
+  - workshop_id: "3393821407"
+    name: "[B42] Drag Bodies Faster"
+    sub_mods:
+      - id: DBFaster70
+        name: "[B42] Drag Bodies Faster 70%"
+        enabled: false
+      - id: DBFaster50
+        name: "[B42] Drag Bodies Faster 50%"
+        enabled: false
+      - id: DBFaster80
+        name: "[B42] Drag Bodies Faster 80%"
+        enabled: false
+      - id: DBFaster60
+        name: "[B42] Drag Bodies Faster 60%"
+
+  - workshop_id: "3020323164"
+    name: "Add More Map Symbols (AMMS)"
+    mod_id: AMMS_Standalone
+
+  - workshop_id: "2629074154"
+    name: "Stack All"
+    mod_id: stack_all_41
+
+  - workshop_id: "2867431511"
+    name: "[B41|B42] Simple Status"
+    mod_id: simpleStatus
+
+  - workshop_id: "2996978365"
+    name: "Dynamic Backpack Upgrades [ B41-B42.15 ]"
+    mod_id: LazoloDynamicBackpackUpgrades
+
+  - workshop_id: "3437629766"
+    name: "CleanUI [B42]"
+    mod_id: CleanUI
+
+  - workshop_id: "3639628777"
+    name: "Burd's Survival Journals (B41/42)"
+    mod_id: BurdSurvivalJournals
+
+  - workshop_id: "2625625421"
+    name: "Containers!"
+    mod_id: isoContainers
+
+  - workshop_id: "3067798182"
+    name: "Building Menu [B41.78]"
+    mod_id: BuildingMenu
+
+  - workshop_id: "3372547930"
+    name: "[B41]MachinesII"
+    mod_id: Machines15
+
+  - workshop_id: "3668370011"
+    name: "Legendary Katana Wakizashi"
+    mod_id: LKB42
+
+  - workshop_id: "3519087048"
+    name: "[B42]Now you can loot it!"
+    mod_id: nowyoucanlootitpzmod
+
+  - workshop_id: "3442862183"
+    name: "Effortless Towing"
+    mod_id: EffortlessTowing
+
+  - workshop_id: "3634569678"
+    name: "Better Safehouse [B42.17- MP]"
+    mod_id: BetterSafehouse
+    enabled: false
+
+  - workshop_id: "3461263912"
+    name: "Clean HotBar [B42]"
+    mod_id: CleanHotBar
+
+  - workshop_id: "3306168142"
+    name: "Condition On Dash"
+    mod_id: ConditionOnDash
+
+  - workshop_id: "2650547917"
+    name: "Manage Containers"
+    mod_id: manageContainers
+
+  - workshop_id: "2999183635"
+    name: " Better Electronics"
+    mod_id: LWBetterElectronics
+
+  - workshop_id: "3635856965"
+    name: "Better Auto Mechanics [B42.19+ MP+SP]"
+    mod_id: better-auto-mechanics
+
+  - workshop_id: "3400914593"
+    name: "Item Use Tooltips"
+    mod_id: ItemUseTooltips
+
+  - workshop_id: "3693550188"
+    name: "Jeeve's PC"
+    sub_mods:
+      - id: JeevesPC_LWBetterElectronics
+        name: "Jeeve's PC � LW Better Electronics Patch"
+      - id: JeevesPC
+        name: "Jeeve's Personal Computer"
+
+  - workshop_id: "3669550831"
+    name: "[FIXED] Proximity Inventory B42.19+ [SP/MP]"
+    mod_id: ProximityInventory
+
+  - workshop_id: "3747396551"
+    name: "Food Drying [B42]"
+    mod_id: FoodDrying
+
+  - workshop_id: "3747795879"
+    name: "[B42] WildMaker"
+    mod_id: WildMaker
+
+  - workshop_id: "3716522633"
+    name: "[B41,B42] Show VHS skills in tooltip"
+    mod_id: VHSSkillNameInTooltip
+
+  - workshop_id: "3738669352"
+    name: "Become Desensitized [B42.19 Unofficial SP/MP]"
+    mod_id: BecomeDesensitizedB42Unofficial
+
+  - workshop_id: "3678109350"
+    name: "Chopper Drop [B42][MP][SP]"
+    mod_id: ChopperDrop
+
+  - workshop_id: "3743371090"
+    name: "'73 NISSAN Skyline GT-R"
+    mod_id: 73nissanGTR
+
+  - workshop_id: "3705029261"
+    name: "Red Library"
+    mod_id: REDLIBRARY
+
+  - workshop_id: "2705406713"
+    name: "Military Tool Kit"
+    mod_id: Military_Tool_Kit
+
+  - workshop_id: "3677217949"
+    name: "1967 Chevrolet Impala"
+    mod_id: 1967ChevyImpala
+
+  - workshop_id: "3730833846"
+    name: "'76 Chrysler New Yorker"
+    mod_id: 76chryslerNewYorker
+
+  - workshop_id: "3726526329"
+    name: "'78 Lamborghini Countach"
+    mod_id: 78lamboCountach
+
+  - workshop_id: "3670064951"
+    name: "Campers!"
+    mod_id: KI5campers
+
+  - workshop_id: "3330403100"
+    name: "Trailers!"
+    mod_id: KI5trailers
+
+  - workshop_id: "3631989559"
+    name: "'69 Dodge Charger"
+    mod_id: 69charger
+
+  - workshop_id: "3379334330"
+    name: "'82 Porsche 911"
+    mod_id: 82porsche911
+
+  - workshop_id: "3539691958"
+    name: "'91 Ford Ranger"
+    mod_id: 91fordRanger
+
+  - workshop_id: "3456675747"
+    name: "[B42.13+ MP] Skateboard!"
+    mod_id: SkateboardMod
+
+  - workshop_id: "3073430075"
+    name: "'93 Ford F-Series"
+    mod_id: 93fordF350
+
+  - workshop_id: "3110911330"
+    name: "'87 Ford B700/F700 Trucks"
+    mod_id: 87fordB700
+
+  - workshop_id: "3287727378"
+    name: "'92 Jeep YJ Wrangler"
+    sub_mods:
+      - id: 92jeepYJJP18
+        name: "'92 Jeep Wrangler YJ JP18"
+      - id: 92jeepYJ
+        name: "'92 Jeep Wrangler YJ"
+
+  - workshop_id: "3196180339"
+    name: "'87 Chevrolet Suburban"
+    mod_id: 87chevySuburban
+
+  - workshop_id: "2870394916"
+    name: "'86 Ford Econoline E-150 + Pop Culture vans"
+    sub_mods:
+      - id: 86fordE150
+        name: "'86 Ford Econoline E150"
+      - id: 86fordE150pd
+        name: "'86 Ford Econoline E150 Payday Escape Van"
+      - id: 86fordE150mm
+        name: "'86 Ford Econoline E150 Mystery Machine"
+      - id: 86fordE150dnd
+        name: "'86 Ford Econoline E150 Mutt Cutts van"
+      - id: 86fordE150expanded
+        name: "'86 Ford Econoline E150 Expanded"
+
+  - workshop_id: "3281755175"
+    name: "Vanilla vehicles animated"
+    sub_mods:
+      - id: VVA_PikamyDelight
+        name: "Vanilla Vehicles Animated: Pikamy's Delighter"
+      - id: VVA_cullseats
+        name: "Vanilla Vehicles Animated: disable passenger rendering"
+      - id: VanillaVehiclesAnimated
+        name: "Vanilla Vehicles Animated"
+      - id: VVA_transparentWindows
+        name: "Vanilla Vehicles Animated: window transparency BETA"
+      - id: VanillaVehiclesAnimated_SVU
+        name: "Vanilla Vehicles Animated - Standard Vehicle Upgrades Patch"
+      - id: VVA_slowdoors
+        name: "Vanilla Vehicles Animated:  Don't Activate! - ApocalypticallySlowDoors"
+        enabled: false
+      - id: VVA_snapDoors
+        name: "Vanilla Vehicles Animated: Snappy Doors"
+
+  - workshop_id: "2335368829"
+    name: "Authentic Z"
+    sub_mods:
+      - id: AuthenticZLite
+        name: "Authentic Z - Lite"
+      - id: AuthenticZBackpacks+
+        name: "Authentic Z - Backpacks+"
+      - id: Authentic Z - Current
+        name: "Authentic Z"
+
+  - workshop_id: "3722357516"
+    name: "[Join/Leave] Player Message"
