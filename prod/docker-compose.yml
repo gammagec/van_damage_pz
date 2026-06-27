@@ -31,6 +31,16 @@ services:
       - pz_prod_data:/home/ubuntu
       - ../scripts/pz-bootstrap.sh:/scripts/pz-bootstrap.sh:ro
 
+  scheduler:
+    image: docker:cli
+    container_name: pz-prod-scheduler
+    # Runs crond inside Alpine and restarts the pz container at 01:00 UTC daily.
+    # To use a different timezone set TZ (e.g. TZ: America/New_York).
+    entrypoint: ["sh", "-c", "echo '0 1 * * * docker restart pz-prod' | crontab - && crond -f -l 2"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
 volumes:
   pz_prod_data:
     name: pz_prod_data
