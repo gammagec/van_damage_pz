@@ -1,12 +1,23 @@
 #!/usr/bin/env python3
 """Sync PZ_RCON_PASSWORD between the server ini and .env.secrets.
 
-Reads RCONPassword from the environment's server ini (the git-tracked
-config, not the live volume) and writes it to <env>/.env.secrets as
-PZ_RCON_PASSWORD.  If the ini has no password set, a random one is
-generated, written to both the ini and .env.secrets, and the server
-must be restarted for the change to take effect (the bootstrap script
-injects it into the live ini on startup).
+The server ini (TestingServer.ini / ProdServer.ini) is committed to git and
+must NEVER contain the real RCON password.  Instead, pz-bootstrap.sh injects
+PZ_RCON_PASSWORD from .env.secrets into the live ini at container startup.
+
+This script handles three states:
+
+  1. Password in .env.secrets, ini is blank (correct state)
+       → confirms everything is already set up correctly, nothing to do.
+
+  2. Password in ini, not in .env.secrets (migrating a manually configured server)
+       → copies the password to .env.secrets, then CLEARS the ini so the secret
+          is no longer in a git-tracked file.  Commit the cleared ini afterwards.
+
+  3. Both blank
+       → generates a random password and writes it ONLY to .env.secrets.
+          The bootstrap will inject it into the live ini on next server startup.
+          Nothing is written to the ini, so nothing secret ever touches git.
 
 Usage: scripts/pull-rcon-password.py <testing|prod>
 """
@@ -17,27 +28,18 @@ import sys
 from pathlib import Path
 
 
-def _read_env_var(env_file: Path, key: str) -> str:
-    for line in env_file.read_text().splitlines():
+def _read_env_var(path: Path, key: str) -> str:
+    if not path.exists():
+        return ""
+    for line in path.read_text().splitlines():
         if line.startswith(f"{key}="):
             return line[len(key) + 1:]
     return ""
 
 
-def _read_ini_var(ini_file: Path, key: str) -> str:
-    for line in ini_file.read_text().splitlines():
-        if line.startswith(f"{key}="):
-            return line[len(key) + 1:].strip()
-    return ""
-
-
 def _set_ini_var(ini_file: Path, key: str, value: str) -> None:
     text = ini_file.read_text()
-    new_line = f"{key}={value}"
-    if re.search(rf"^{re.escape(key)}=", text, re.MULTILINE):
-        text = re.sub(rf"^{re.escape(key)}=.*", new_line, text, flags=re.MULTILINE)
-    else:
-        text = text.rstrip("\n") + f"\n{new_line}\n"
+    text = re.sub(rf"^{re.escape(key)}=.*", f"{key}={value}", text, flags=re.MULTILINE)
     ini_file.write_text(text)
 
 
@@ -48,7 +50,6 @@ def _set_secrets_var(secrets_file: Path, key: str, value: str) -> None:
             text = re.sub(rf"^{re.escape(key)}=.*", f"{key}={value}", text, flags=re.MULTILINE)
             secrets_file.write_text(text)
             return
-    # Append
     with secrets_file.open("a") as f:
         f.write(f"{key}={value}\n")
 
@@ -61,10 +62,9 @@ def main() -> None:
     env = args.environment
     repo_root = Path(__file__).resolve().parent.parent
     env_dir = repo_root / env
-    env_file = env_dir / ".env"
     secrets_file = env_dir / ".env.secrets"
 
-    server_name = _read_env_var(env_file, "PZ_SERVER_NAME")
+    server_name = _read_env_var(env_dir / ".env", "PZ_SERVER_NAME")
     if not server_name:
         print(f"PZ_SERVER_NAME not set in {env}/.env", file=sys.stderr)
         sys.exit(1)
@@ -75,44 +75,37 @@ def main() -> None:
         print("Run scripts/pull-config.py first to pull it from the container.", file=sys.stderr)
         sys.exit(1)
 
-    ini_password = _read_ini_var(ini_file, "RCONPassword")
-    secrets_password = _read_secrets_var(secrets_file, "PZ_RCON_PASSWORD") if secrets_file.exists() else ""
+    ini_password     = _read_env_var(ini_file, "RCONPassword")
+    secrets_password = _read_env_var(secrets_file, "PZ_RCON_PASSWORD")
 
-    if ini_password:
-        # Password already set in ini — sync it to .env.secrets.
-        print(f"Found RCONPassword in {ini_file.name}.")
+    if secrets_password and not ini_password:
+        # Correct state — nothing to do.
+        print(f"OK: PZ_RCON_PASSWORD is set in {env}/.env.secrets and the ini is blank.")
+        print("pz-bootstrap.sh will inject it into the live ini at next server startup.")
+
+    elif ini_password:
+        # Password is hardcoded in the ini — migrate it out before it ends up in git.
+        print(f"Found RCONPassword in {ini_file.name} — migrating to .env.secrets ...")
         _set_secrets_var(secrets_file, "PZ_RCON_PASSWORD", ini_password)
         print(f"Written PZ_RCON_PASSWORD to {env}/.env.secrets.")
+
+        _set_ini_var(ini_file, "RCONPassword", "")
+        print(f"Cleared RCONPassword in {ini_file.name} (password must not live in git).")
+        print()
+        print("Commit the cleared ini:")
+        print(f"  git add {env}/config/{ini_file.name}")
+        print(f'  git commit -m "remove hardcoded RCON password from {env} ini"')
+
     else:
-        # No password in ini — generate one, write to both ini and .env.secrets.
-        print(f"RCONPassword is blank in {ini_file.name}.")
-        if secrets_password:
-            # .env.secrets already has a password — push it into the ini.
-            print(f"PZ_RCON_PASSWORD already set in {env}/.env.secrets — writing it to ini.")
-            _set_ini_var(ini_file, "RCONPassword", secrets_password)
-            print(f"Updated {ini_file.name}.")
-            print()
-            print("Commit the updated ini, then restart the server for the change to take effect:")
-            print(f"  git add {env}/config/{ini_file.name}")
-            print(f'  git commit -m "set RCON password in {env} ini"')
-        else:
-            # Nothing anywhere — generate a fresh password.
-            new_password = secrets.token_urlsafe(24)
-            print(f"Generating a new RCON password ...")
-            _set_ini_var(ini_file, "RCONPassword", new_password)
-            _set_secrets_var(secrets_file, "PZ_RCON_PASSWORD", new_password)
-            print(f"Written to {ini_file.name} and {env}/.env.secrets.")
-            print()
-            print("Commit the updated ini, then restart the server for the change to take effect:")
-            print(f"  git add {env}/config/{ini_file.name}")
-            print(f'  git commit -m "set RCON password in {env} ini"')
-
-
-def _read_secrets_var(secrets_file: Path, key: str) -> str:
-    for line in secrets_file.read_text().splitlines():
-        if line.startswith(f"{key}="):
-            return line[len(key) + 1:].strip()
-    return ""
+        # Both blank — generate a fresh password and write it only to .env.secrets.
+        new_password = secrets.token_urlsafe(24)
+        print("Both ini and .env.secrets have no RCON password — generating one ...")
+        _set_secrets_var(secrets_file, "PZ_RCON_PASSWORD", new_password)
+        print(f"Written PZ_RCON_PASSWORD to {env}/.env.secrets.")
+        print("The ini is unchanged (the bootstrap injects the password at runtime).")
+        print()
+        print("Restart the server to activate RCON:")
+        print(f"  (cd {env} && docker compose restart pz)")
 
 
 if __name__ == "__main__":
