@@ -27,6 +27,18 @@ done
 
 cd /home/ubuntu/pzserver
 
+# Inject the RCON password from the environment into the server ini so the
+# scheduler and mod-watcher sidecars can send in-game warnings before
+# restarting.  The ini is committed to git with RCONPassword= (empty); the
+# actual secret lives in .env.secrets and never touches git.
+if [ -n "${PZ_RCON_PASSWORD:-}" ]; then
+  INI="/home/ubuntu/Zomboid/Server/${PZ_SERVER_NAME}.ini"
+  if [ -f "$INI" ]; then
+    sed -i "s/^RCONPassword=.*/RCONPassword=${PZ_RCON_PASSWORD}/" "$INI"
+    echo "RCON password set in ${PZ_SERVER_NAME}.ini"
+  fi
+fi
+
 ./start-server.sh -Xms$PZ_JAVA_XMS -Xmx$PZ_JAVA_XMX -- \
     -adminusername $PZ_ADMIN_USERNAME \
     -adminpassword $PZ_ADMIN_PASSWORD \

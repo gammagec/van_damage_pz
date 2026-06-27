@@ -34,25 +34,35 @@ services:
   mod-watcher:
     image: python:3.12-alpine
     container_name: pz-prod-mod-watcher
+    env_file:
+      - .env.secrets
     environment:
       PZ_CONTAINER: pz-prod
+      RCON_HOST: pz-prod
+      MODS_YAML: /mods.yaml
       # POLL_INTERVAL: "900"      # seconds between Steam API checks (default 15 min)
       # RESTART_COOLDOWN: "1200"  # seconds to wait after restart   (default 20 min)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ../scripts/mod-update-watcher.py:/watcher.py:ro
+      - ../scripts:/scripts:ro
       - ./mods.yaml:/mods.yaml:ro
-    command: python /watcher.py
+    command: python /scripts/mod-update-watcher.py
     restart: unless-stopped
 
   scheduler:
-    image: docker:cli
+    image: python:3.12-alpine
     container_name: pz-prod-scheduler
-    # Runs crond inside Alpine and restarts the pz container at 01:00 UTC daily.
-    # To use a different timezone set TZ (e.g. TZ: America/New_York).
-    entrypoint: ["sh", "-c", "echo '0 1 * * * docker restart pz-prod' | crontab - && crond -f -l 2"]
+    env_file:
+      - .env.secrets
+    environment:
+      TZ: America/Los_Angeles
+      PZ_CONTAINER: pz-prod
+      RCON_HOST: pz-prod
+    # Sends a 5-min and 1-min in-game warning, saves, then restarts at 01:00 LA time.
+    entrypoint: ["sh", "-c", "echo '0 1 * * * python /scripts/restart-with-warning.py' | crontab - && crond -f -l 2"]
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ../scripts:/scripts:ro
     restart: unless-stopped
 
 volumes:

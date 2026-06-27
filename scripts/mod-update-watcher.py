@@ -4,12 +4,16 @@
 Reads enabled workshop IDs from mods.yaml, polls the Steam
 GetPublishedFileDetails API every POLL_INTERVAL seconds, and restarts
 the target container via the Docker socket when any item's time_updated
-changes.  After a restart it waits RESTART_COOLDOWN seconds (to let the
+changes.  Sends in-game warnings via RCON before restarting.
+After a restart it waits RESTART_COOLDOWN seconds (to let the
 server finish its SteamCMD + boot cycle) before resuming normal polling.
 
 Environment variables:
   MODS_YAML         Path to mods.yaml            (default: /mods.yaml)
   PZ_CONTAINER      Container name to restart     (default: pz)
+  RCON_HOST         RCON hostname                 (default: PZ_CONTAINER)
+  RCON_PORT         RCON port                     (default: 27015)
+  PZ_RCON_PASSWORD  RCON password                 (warnings skipped if unset)
   POLL_INTERVAL     Seconds between polls         (default: 900  = 15 min)
   RESTART_COOLDOWN  Seconds to wait after restart (default: 1200 = 20 min)
 """
@@ -23,6 +27,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
+
+sys.path.insert(0, os.path.dirname(__file__))
+from pz_rcon import try_rcon  # noqa: E402
 
 STEAM_API = "https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/"
 STEAM_BATCH = 100  # max items per Steam API request
@@ -112,9 +119,45 @@ class _Docker:
 # Main loop
 # ---------------------------------------------------------------------------
 
+def _warn_and_restart(docker: _Docker, container: str, rcon_host: str,
+                       rcon_port: int, rcon_pass: str, names: list[str],
+                       cooldown: int) -> bool:
+    noun = "mod" if len(names) == 1 else "mods"
+    detail = ", ".join(names[:3]) + (" ..." if len(names) > 3 else "")
+
+    if rcon_pass:
+        print(f"[watcher] Sending 5-minute warning ...", flush=True)
+        try_rcon(rcon_host, rcon_port, rcon_pass,
+                 f'servermsg "Server restarting in 5 minutes — {len(names)} {noun} updated ({detail})."')
+        time.sleep(4 * 60)
+
+        print(f"[watcher] Sending 1-minute warning ...", flush=True)
+        try_rcon(rcon_host, rcon_port, rcon_pass,
+                 'servermsg "Server restarting in 1 minute!"')
+        time.sleep(50)
+
+        print(f"[watcher] Triggering server save ...", flush=True)
+        try_rcon(rcon_host, rcon_port, rcon_pass, "save")
+        time.sleep(10)
+    else:
+        print("[watcher] PZ_RCON_PASSWORD not set — skipping warnings.", flush=True)
+
+    print(f"[watcher] Restarting {container} ...", flush=True)
+    if docker.restart(container):
+        print(f"[watcher] Restart triggered. Cooling down for {cooldown}s.", flush=True)
+        time.sleep(cooldown)
+        return True
+    else:
+        print(f"[watcher] Restart failed — will retry next poll.", flush=True)
+        return False
+
+
 def main() -> None:
     mods_yaml      = os.environ.get("MODS_YAML",         "/mods.yaml")
     container      = os.environ.get("PZ_CONTAINER",      "pz")
+    rcon_host      = os.environ.get("RCON_HOST",          container)
+    rcon_port      = int(os.environ.get("RCON_PORT",      "27015"))
+    rcon_pass      = os.environ.get("PZ_RCON_PASSWORD",   "")
     poll_interval  = int(os.environ.get("POLL_INTERVAL",     "900"))
     cooldown       = int(os.environ.get("RESTART_COOLDOWN", "1200"))
 
@@ -153,14 +196,9 @@ def main() -> None:
             continue
 
         print(f"[watcher] {len(changed)} updated workshop item(s): {', '.join(changed)}", flush=True)
-        print(f"[watcher] Restarting {container} ...", flush=True)
 
-        if docker.restart(container):
+        if _warn_and_restart(docker, container, rcon_host, rcon_port, rcon_pass, changed, cooldown):
             known.update(current)
-            print(f"[watcher] Restart triggered. Cooling down for {cooldown}s.", flush=True)
-            time.sleep(cooldown)
-        else:
-            print(f"[watcher] Restart failed — will retry next poll.", flush=True)
 
 
 if __name__ == "__main__":
