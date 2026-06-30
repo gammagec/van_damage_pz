@@ -261,10 +261,6 @@ mods:
     name: "Better Auto Mechanics [B42.19+ MP+SP]"
     mod_id: better-auto-mechanics
 
-  - workshop_id: "3400914593"
-    name: "Item Use Tooltips"
-    mod_id: ItemUseTooltips
-
   - workshop_id: "3693550188"
     name: "Jeeve's PC"
     sub_mods:
@@ -410,3 +406,9 @@ mods:
 
   - workshop_id: "3722357516"
     name: "[Join/Leave] Player Message"
+
+  - workshop_id: "2377867605"
+    name: "50% Wood Weight"
+
+  - workshop_id: "2829657632"
+    name: "[41&42]50% metal weight"
