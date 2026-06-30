@@ -406,9 +406,12 @@ mods:
 
   - workshop_id: "3722357516"
     name: "[Join/Leave] Player Message"
+    mod_id: JoinLeaveMessage
 
   - workshop_id: "2377867605"
     name: "50% Wood Weight"
+    mod_id: ReducedWoodWeight2x41
 
   - workshop_id: "2829657632"
     name: "[41&42]50% metal weight"
+    mod_id: 50%metalweight
