@@ -68,6 +68,12 @@ services:
   metrics-collector:
     image: python:3.12-alpine
     container_name: pz-prod-metrics
+    # Run as the host user (uid 1001) so ./metrics and its DB stay host-owned
+    # and readable/writable by scripts/metrics-report.py. group_add 973 is the
+    # host "docker" group, needed to read the Docker socket for container stats.
+    user: "1001:1001"
+    group_add:
+      - "973"
     env_file:
       - .env.secrets            # provides PZ_RCON_PASSWORD
     environment:
