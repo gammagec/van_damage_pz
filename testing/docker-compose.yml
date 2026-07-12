@@ -65,6 +65,25 @@ services:
       - ../scripts:/scripts:ro
     restart: unless-stopped
 
+  metrics-collector:
+    image: python:3.12-alpine
+    container_name: pz-testing-metrics
+    env_file:
+      - .env.secrets            # provides PZ_RCON_PASSWORD
+    environment:
+      PZ_CONTAINER: pz-testing
+      RCON_HOST: pz-testing
+      SQLITE_PATH: /data/metrics.db
+      # POLL_INTERVAL: "60"     # seconds between samples (default 60)
+    # Polls RCON for logged-in players + reads container stats from the Docker
+    # socket, writing samples to ./metrics/metrics.db on the host.
+    command: python /scripts/metrics-collector.py
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../scripts:/scripts:ro
+      - ./metrics:/data
+    restart: unless-stopped
+
 volumes:
   pz_testing_data:
     name: pz_testing_data

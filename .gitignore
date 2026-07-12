@@ -1,3 +1,6 @@
 **/.env.secrets
 /.cache/
 __pycache__/
+
+# Collected usage metrics + generated reports (see scripts/metrics-collector.py)
+**/metrics/
